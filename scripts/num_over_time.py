@@ -27,7 +27,7 @@ def main():
     comment_path = os.path.join(this_dir_path, '..', '..', 'polar-seeds', 'data', 'cache', 'related_comments.csv')
     comments_df = utils.get_comment_df(comment_path)
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 3))
 
     news_count_df = news_df.resample('SMS', on='publish_date').count()
     news_ln = ax.plot(news_count_df.index, news_count_df['title'], label='News')
@@ -40,17 +40,18 @@ def main():
     comment_count_df = comments_df.resample('SMS', on='createtime').count()
     comment_ln = twin_ax.plot(comment_count_df.index, comment_count_df['text'], label='Comments')
 
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Num Videos/News')
-    twin_ax.set_ylabel('Num Comments')
+    ax.set_xlabel('Date', fontsize=14)
+    ax.set_ylabel('Num Videos/News', fontsize=14)
+    twin_ax.set_ylabel('Num Comments', fontsize=14)
 
     # reduce number of data labels
-    ax.xaxis.set_major_locator(plt.MaxNLocator(10))
+    ax.xaxis.set_major_locator(plt.MaxNLocator(8))
 
     lns = news_ln + video_ln + comment_ln
     labs = [l.get_label() for l in lns]
-    ax.legend(lns, labs, loc=0)
+    ax.legend(lns, labs, loc=0, prop={'size': 12})
 
+    fig.tight_layout()
     fig.savefig(os.path.join(data_dir_path, 'outputs', 'num_over_time.png'))
 
 if __name__ == '__main__':

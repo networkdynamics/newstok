@@ -14,7 +14,7 @@ def main():
 
     batch_size = 4
     for keyword in keywords:
-        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 3))
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 2.5))
 
         news_data = news_df[['publish_date', 'text', f'contains_{keyword}']].resample('SMS', on='publish_date').agg({'text': 'count', f'contains_{keyword}': 'sum'})
         news_data['percentage'] = 100 * news_data[f'contains_{keyword}'] / news_data['text']
@@ -32,11 +32,11 @@ def main():
 
         lns = ln_news + ln_video + ln_comment
         labs = [l.get_label() for l in lns]
-        ax.legend(lns, labs, loc=0)
+        ax.legend(lns, labs, loc=0, prop={'size': 10})
         # ax.set_title(f'Timeline of mentions of {keyword} in News vs TikTok')
-        ax.set_xlabel('Date')
-        ax.set_ylabel('Percentage of news/videos')
-        t_axis.set_ylabel('Percentage of comments')
+        ax.set_xlabel('Date', fontsize=14)
+        ax.set_ylabel('Percentage of news/videos', fontsize=10)
+        t_axis.set_ylabel('Percentage of comments', fontsize=10)
 
         fig.tight_layout()
         fig.savefig(os.path.join(data_dir_path, 'outputs', f'{keyword}_timeline.png'))
