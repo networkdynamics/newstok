@@ -2,10 +2,12 @@ import os
 import datetime
 import functools
 import json
+import multiprocessing
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import tqdm
 
 from pytok import utils
 
@@ -110,6 +112,7 @@ def get_examples(news_df, related_videos_df, comments_df, keywords, data_dir_pat
     with open(os.path.join(data_dir_path, 'keyword_timeline_examples.json'), 'w') as f:
         json.dump(examples, f, ensure_ascii=False, indent=4)
 
+
 def get_keyword_dfs():
     keywords = ['ukraine', 'russia', 'putin', 'zelenskyy', 'kyiv', 'moscow', 'crimea', \
         'donetsk', 'luhansk', 'donbas', \
@@ -131,20 +134,25 @@ def get_keyword_dfs():
     apr_related_videos_path = os.path.join(data_dir_path, "related_apr_videos.csv")
 
     news_df = pd.read_csv(news_csv_path)
-    news_df['publish_date'] = pd.to_datetime(news_df['publish_date'])
+    def try_parse_date(date):
+        try:
+            return datetime.datetime.strptime(date, '%Y-%m-%d')
+        except:
+            return None
+    news_df['publish_date'] = news_df['publish_date'].apply(try_parse_date)
     news_df = news_df[news_df['publish_date'] > datetime.datetime(2022, 1, 1)]
 
-    related_videos_df = utils.get_video_df(related_videos_path)
-    apr_related_videos_df = utils.get_video_df(apr_related_videos_path)
+    related_videos_df = utils.try_load_video_df_from_file(related_videos_path)
+    apr_related_videos_df = utils.try_load_video_df_from_file(apr_related_videos_path)
     related_videos_df = pd.concat([related_videos_df, apr_related_videos_df])
     related_videos_df = related_videos_df.drop_duplicates(subset=['video_id'])
 
     related_videos_df = related_videos_df[related_videos_df['createtime'] > datetime.datetime(2022, 1, 1)]
 
-    comment_path = os.path.join(this_dir_path, '..', '..', 'polar-seeds', 'data', 'cache', 'related_comments.csv')
-    comments_df = utils.get_comment_df(comment_path)
+    comment_path = os.path.join(this_dir_path, '..', '..', 'polar-seeds', 'data', 'cache', 'related_comments.parquet.gzip')
+    comments_df = utils.try_load_comment_df_from_file(comment_path)
 
-    for keyword in keywords:
+    for keyword in tqdm.tqdm(keywords):
         # check if keyword in title or text
         news_df = contains_keyword(news_df, ['title', 'text'], keyword, alt_spellings.get(keyword, keyword))
         related_videos_df = contains_keyword(related_videos_df, 'desc', keyword, alt_spellings.get(keyword, keyword))
